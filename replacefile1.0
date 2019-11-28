@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 27 11:01:51 2019
+
+@author: 18225
+"""
+import configparser
+import socket
+import platform
+import requests
+import re
+
+text = requests.get("http://txt.go.sohu.com/ip/soip").text #搜狐免费获取公网的接口
+wan = re.findall(r'\d+.\d+.\d+.\d+',text)#返回以x.x.x.x的字符串
+#print(wan[0]) #wan[0]表示获得的外网ip
+
+ 
+def getip():
+     try:
+         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)#AF_INET表示IPv4协议，创建Socket对象
+         s.connect(('www.baidu.com', 0))#连接百度
+         ip = s.getsockname()[0]
+     except:
+         ip = "x.x.x.x"
+     finally:
+         s.close()
+     return ip
+ 
+if __name__ == "__main__":
+     local = "0.0.0.0"
+     sysstr = platform.system()
+     if sysstr == "Linux":#获取linux内网ip
+         local = getip()
+#         print(local)
+     else:
+         local = '127.0.0.1'
+
+
+
+config = configparser.ConfigParser()
+alarm='E:/application.properties'#文件位置
+
+with open(alarm,'r+',encoding='gbk') as stream:
+   content = stream.read()
+   stream.seek(0,0)
+   stream.write('[TOP123]\n' + content) #文件第一行增加一个虚拟节点
+   
+config.read(alarm,encoding='gbk')         
+topsecret = config['TOP123']
+#修改内容
+topsecret['host.local.ip'] = wan[0]
+
+def writestr_delsect(config):
+   #临时写入配置文件      
+   with open(alarm, 'w') as configfile:
+       config.write(configfile)
+   with open(alarm) as stream:
+       mystr=stream.read()
+   return mystr
+
+#删除虚拟section
+#1、在文本第一行加入#，将其注释
+'''
+with open(alarm,'r+',encoding='gbk') as f:
+   contentend = f.read()
+   f.seek(0,0)
+   f.write('#' + contentend) 
+'''
+#2、将文本第一行设为空=将其删除
+
+f = open(alarm,"r",encoding='gbk')
+new=[]
+for line in f:
+    new.append(line)
+new[0]=''
+f.close()
+
+f = open(alarm,"w")
+for n in new:
+    f.write(n)
+f.close()
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
